@@ -122,7 +122,3 @@ if submit:
 
             with open(txt_path, "rb") as f:
                 st.download_button("📄 Baixar TXT", f, file_name=os.path.basename(txt_path))
-
-            # Link para abrir cliente de email com mensagem pré-preenchida
-            mailto = f"mailto:{dados['Email']}?subject=Ficha Técnica para Gráfica&body=Segue em anexo a ficha técnica do projeto editorial."
-            st.markdown(f"[📧 Enviar por email]({mailto})", unsafe_allow_html=True)
