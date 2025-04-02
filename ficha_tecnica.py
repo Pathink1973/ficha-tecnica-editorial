@@ -7,13 +7,14 @@ import re
 import platform
 import subprocess
 
-# Funções auxiliares
+# Validadores
 def validar_email(email):
     return re.match(r"[^@]+@[^@]+\.[^@]+", email)
 
 def validar_telefone(telefone):
     return re.match(r"\d{9,}", telefone)
 
+# Abrir arquivo localmente (opcional)
 def abrir_arquivo(caminho):
     sistema = platform.system()
     try:
@@ -26,6 +27,7 @@ def abrir_arquivo(caminho):
     except Exception as e:
         st.error(f"Não foi possível abrir o arquivo: {e}")
 
+# Geração de PDF e TXT
 def gerar_pdf_txt(dados):
     pasta = "FichasTecnicas"
     os.makedirs(pasta, exist_ok=True)
@@ -33,7 +35,7 @@ def gerar_pdf_txt(dados):
     caminho_pdf = os.path.join(pasta, f"Ficha_Técnica_{nome_base}.pdf")
     caminho_txt = os.path.join(pasta, f"Ficha_Técnica_{nome_base}.txt")
 
-    # PDF
+    # Gerar PDF
     c = canvas.Canvas(caminho_pdf, pagesize=A4)
     width, height = A4
     margin = 50
@@ -55,7 +57,7 @@ def gerar_pdf_txt(dados):
             y = height - margin - 40
     c.save()
 
-    # TXT
+    # Gerar TXT
     try:
         with open(caminho_txt, 'w', encoding='utf-8') as f:
             f.write("Ficha Técnica para Gráfica\n")
@@ -69,7 +71,7 @@ def gerar_pdf_txt(dados):
 
     return caminho_pdf, caminho_txt
 
-# Campos
+# Campos do formulário
 campos = [
     "Nome do ficheiro",
     "Nome do designer",
@@ -86,10 +88,11 @@ campos = [
     "Telefone"
 ]
 
-# Interface Streamlit
+# Configuração da página
 st.set_page_config(page_title="Ficha Técnica Editorial", layout="centered")
-st.title("📝 Ficha Técnica Editorial")
+st.title("📘 Ficha Técnica Editorial")
 
+# Formulário
 with st.form("formulario"):
     dados = {}
     for campo in campos:
@@ -100,21 +103,26 @@ with st.form("formulario"):
 
     submit = st.form_submit_button("Gerar PDF e TXT")
 
-# Ação ao submeter
+# Após o envio do formulário
 if submit:
     if not dados["Nome do ficheiro"]:
-        st.warning("O campo 'Nome do ficheiro' é obrigatório.")
+        st.warning("⚠️ O campo 'Nome do ficheiro' é obrigatório.")
     elif not validar_email(dados["Email"]):
-        st.warning("Por favor, insira um email válido.")
+        st.warning("⚠️ Por favor, insira um email válido.")
     elif not validar_telefone(dados["Telefone"]):
-        st.warning("Por favor, insira um número de telefone válido (mínimo 9 dígitos).")
+        st.warning("⚠️ Por favor, insira um número de telefone válido (mínimo 9 dígitos).")
     else:
         pdf_path, txt_path = gerar_pdf_txt(dados)
         if pdf_path and txt_path:
-            st.success("Relatórios gerados com sucesso!")
-            st.download_button("📄 Baixar PDF", open(pdf_path, "rb"), file_name=os.path.basename(pdf_path))
-            st.download_button("📄 Baixar TXT", open(txt_path, "rb"), file_name=os.path.basename(txt_path))
+            st.success("✅ Relatórios gerados com sucesso!")
 
-            # Pré-preenchimento do email
+            # Botões de download
+            with open(pdf_path, "rb") as f:
+                st.download_button("📄 Baixar PDF", f, file_name=os.path.basename(pdf_path))
+
+            with open(txt_path, "rb") as f:
+                st.download_button("📄 Baixar TXT", f, file_name=os.path.basename(txt_path))
+
+            # Link para abrir cliente de email com mensagem pré-preenchida
             mailto = f"mailto:{dados['Email']}?subject=Ficha Técnica para Gráfica&body=Segue em anexo a ficha técnica do projeto editorial."
             st.markdown(f"[📧 Enviar por email]({mailto})", unsafe_allow_html=True)
